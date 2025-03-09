@@ -1,6 +1,6 @@
 version: '3'
 services:
-  hacker-news-ai:
+  article-insight-ai:
     container_name: article-insight-ai
     image: article-insight-ai:latest
     volumes:
