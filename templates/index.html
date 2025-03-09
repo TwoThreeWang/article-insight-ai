@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI文章总结工具 | 一键提取文章精华</title>
+  <meta name="description" content="使用人工智能技术，快速提取文章核心内容，生成结构化摘要，提高阅读效率">
+  <!-- Tailwind CSS 通过 CDN -->
+  <link href="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" type="text/css" rel="stylesheet" />
+  <script src="/static/js/main.js"></script>
+  <!-- 引入图标库 - Icons -->
+  <link rel="stylesheet" href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Markdown 解析库 -->
+  <script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/marked/4.0.2/marked.min.js"></script>
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href='/static/style.css'>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 theme-transition">
+  <!-- 主容器 -->
+  <main class="container mx-auto px-5 py-12">
+    <!-- 页面标题 -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800 mb-3">文章智能总结</h1>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        输入任意文章链接，让AI为您生成简洁明了的摘要，节省阅读时间，提高学习效率
+      </p>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="max-w-5xl mx-auto">
+      <!-- URL输入表单 -->
+      <div class="rounded-xl glass bg-white border-0 shadow-lg overflow-hidden mb-8">
+        <div class="px-6 py-5 border-b border-gray-100">
+          <h2 class="text-xl font-semibold text-center">开始使用</h2>
+          <p class="text-center text-gray-500 mt-1">粘贴文章链接，一键获取AI生成的精华摘要</p>
+        </div>
+        <div class="p-6">
+          <!-- 切换标签 -->
+          <div class="border-b border-gray-200 mb-4">
+            <ul class="flex flex-wrap -mb-px" role="inputtablist">
+              <li class="mr-2" role="inputpresentation">
+                <button
+                        class="inline-block py-2 px-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600 rounded-t-lg active"
+                        id="link-tab"
+                        data-tab="link-input"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                >
+                  文章链接
+                </button>
+              </li>
+              <li class="mr-2" role="inputpresentation">
+                <button
+                        class="inline-block py-2 px-4 text-sm font-medium text-gray-500 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300"
+                        id="content-tab"
+                        data-tab="content-input"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                >
+                  文章内容
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 标签内容 -->
+          <div class="input-tab-content">
+            <div class="tab-pane active url" id="link-input-content">
+              <form id="urlForm" class="flex flex-col md:flex-row gap-3">
+                <div class="relative flex-grow">
+                  <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" style="font-size: 18px;"><i class="fa fa-link"></i></span>
+                  <input
+                          type="url"
+                          id="articleUrl"
+                          placeholder="https://example.com/article"
+                          class="w-full rounded-lg border border-gray-200 bg-white px-4 pl-10 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                          required
+                  >
+                </div>
+                <button
+                        type="submit"
+                        id="submitButton"
+                        class="gradient-button text-white font-medium rounded-lg px-5 py-2 text-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 whitespace-nowrap"
+                >
+                  开始总结
+                </button>
+              </form>
+            </div>
+            <div class="tab-pane hidden" id="content-input-content">
+              <textarea class="large-textarea" id="large-textarea" placeholder="手动复制文章内容粘贴在这里，然后点击开始总结按钮"></textarea>
+              <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-2">
+                <button
+                        type="submit"
+                        id="textarea-submit"
+                        class="gradient-button text-white font-medium rounded-lg px-5 py-2 text-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 whitespace-nowrap"
+                >
+                  开始总结
+                </button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- 总结报错结果区域 (最初隐藏) -->
+      <div id="resultErrorCard" class="rounded-xl glass bg-white border-0 shadow-lg overflow-hidden mb-8 fade-in hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+          <h2 class="text-xl font-semibold">总结报错</h2>
+          <div class="flex items-center text-sm text-red-600">
+            <span class="mr-1" style="font-size: 16px;"><i class="fa fa-minus-square-o"></i></span>
+            未成功总结
+          </div>
+        </div>
+        <div class="p-6" id="err-info"></div>
+      </div>
+
+      <!-- 总结结果区域 (最初隐藏) -->
+      <div id="resultCard" class="rounded-xl glass bg-white border-0 shadow-lg overflow-hidden mb-8 fade-in hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+          <h2 class="text-xl font-semibold">总结结果</h2>
+          <div class="flex items-center text-sm text-green-600">
+            <span class="mr-1" style="font-size: 16px;"><i class="fa fa-check-square-o"></i></span>
+            已完成总结
+          </div>
+        </div>
+        <div class="p-6">
+          <!-- 切换标签 -->
+          <div class="border-b border-gray-200 mb-4">
+            <ul class="flex flex-wrap -mb-px" role="tablist">
+              <li class="mr-2" role="presentation">
+                <button
+                  class="inline-block py-2 px-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600 rounded-t-lg active"
+                  id="preview-tab"
+                  data-tab="preview"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                >
+                  预览
+                </button>
+              </li>
+              <li class="mr-2" role="presentation">
+                <button
+                  class="inline-block py-2 px-4 text-sm font-medium text-gray-500 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300"
+                  id="markdown-tab"
+                  data-tab="markdown"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                >
+                  Markdown
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 标签内容 -->
+          <div class="tab-content">
+            <div class="tab-pane active markdown" id="preview-content">
+              <!-- 这里将由JavaScript填充Markdown渲染后的HTML -->
+            </div>
+            <div class="tab-pane hidden" id="markdown-content">
+              <div class="bg-gray-50 p-4 rounded-md overflow-auto max-h-[500px] custom-scrollbar">
+                <pre id="markdown-text" class="text-sm font-mono whitespace-pre-wrap"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-2">
+          <button id="copyButton" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all">
+            复制 MD 全文
+          </button>
+        </div>
+      </div>
+
+      <!-- 加载状态 -->
+      <div id="loadingIndicator" class="rounded-xl glass bg-white border-0 shadow-lg p-8 text-center mb-8 hidden fade-in">
+        <div class="inline-block mx-auto mb-4">
+          <svg class="spinner w-12 h-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">正在处理您的请求</h3>
+        <p class="text-gray-600">AI正在分析文章并生成摘要，这可能需要几秒钟...</p>
+      </div>
+
+      <!-- 历史记录 -->
+      <div id="historyCard" class="rounded-xl glass bg-white border-0 shadow-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center">
+            <span class="mr-2 text-gray-500" style="font-size: 18px;"><i class="fa fa-history"></i></span>
+            <h2 class="text-xl font-semibold">历史记录</h2>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="space-y-3" id="historyList">
+            <!-- 历史记录条目会由JavaScript动态生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    // 历史记录数据
+    let history = [];
+
+    // 当前总结的Markdown内容
+    let currentSummary = "";
+
+    // DOM加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 渲染历史记录
+      renderHistory();
+
+      // 表单提交事件
+      document.getElementById('urlForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const url = document.getElementById('articleUrl').value.trim();
+        if (url) {
+          startSummarizing(url, "url");
+        }
+      });
+
+      // 自定义表单提交事件
+      document.getElementById('textarea-submit').addEventListener('click', function() {
+        const url = document.getElementById('large-textarea').value.trim();
+        if (url) {
+          startSummarizing(url,"self");
+        }
+      });
+
+      // 标签切换事件
+      document.querySelectorAll('[data-tab]').forEach(tab => {
+        tab.addEventListener('click', function() {
+          const tabId = this.getAttribute('data-tab');
+          switchTab(tabId);
+        });
+      });
+
+      // 复制按钮事件
+      document.getElementById('copyButton').addEventListener('click', function() {
+        copyToClipboard(currentSummary);
+      });
+    });
+  </script>
+</body>
+</html>

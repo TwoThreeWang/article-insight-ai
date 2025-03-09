@@ -1,0 +1,19 @@
+version: '3'
+services:
+  hacker-news-ai:
+    container_name: article-insight-ai
+    image: article-insight-ai:latest
+    volumes:
+      - ./config:/config
+    labels:
+      keep: "true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+    networks:
+      - docker-app-network
+
+networks:
+  docker-app-network:
+    external: true
