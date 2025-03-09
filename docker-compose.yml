@@ -3,6 +3,8 @@ services:
   article-insight-ai:
     container_name: article-insight-ai
     image: article-insight-ai:latest
+    ports:
+      - "32910:8080"
     volumes:
       - ./config:/config
     labels:
